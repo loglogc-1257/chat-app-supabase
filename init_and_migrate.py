@@ -1,4 +1,3 @@
-
 import sqlite3
 import os
 
@@ -6,11 +5,12 @@ DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 
 def get_db_connection():
     if DATABASE_URL.startswith('postgresql://') or DATABASE_URL.startswith('postgres://'):
-        import psycopg2
-        import psycopg2.extras
-        conn = psycopg2.connect(DATABASE_URL)
-        conn.autocommit = True
-        return conn
+        try:
+            import psycopg2
+            import psycopg2.extras
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = True
+            return conn
         except psycopg2.Error as e:
             print(f"❌ Erreur de connexion PostgreSQL: {e}")
             print("📝 Vérifiez que DATABASE_URL est correctement configuré")
@@ -23,13 +23,13 @@ def get_db_connection():
 def init_db_schema():
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     is_postgres = DATABASE_URL.startswith('postgresql://') or DATABASE_URL.startswith('postgres://')
-    
+
     if is_postgres:
         # Schémas PostgreSQL
         print("🔧 Initialisation PostgreSQL...")
-        
+
         # Table USERS
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -101,7 +101,7 @@ def init_db_schema():
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         # Table REACTIONS
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS reactions (
@@ -147,7 +147,7 @@ def init_db_schema():
                 UNIQUE (liker_user_id, liked_user_id)
             )
         """)
-        
+
         # Table USER_ACTIVITY
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_activity (
@@ -168,18 +168,18 @@ def init_db_schema():
             "CREATE INDEX IF NOT EXISTS idx_room_members ON room_members(room_id, user_id)",
             "CREATE INDEX IF NOT EXISTS idx_user_activity ON user_activity(user_id, is_online)"
         ]
-        
+
         for index_sql in indexes_postgres:
             try:
                 cursor.execute(index_sql)
                 print(f"  ✅ Index PostgreSQL créé")
             except Exception as e:
                 print(f"  ⚠️ Index déjà existant: {e}")
-    
+
     else:
         # Schémas SQLite (code existant)
         print("🔧 Initialisation SQLite...")
-        
+
         # Créer/Mettre à jour la table USERS
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -258,7 +258,7 @@ def init_db_schema():
                 FOREIGN KEY (receiver_id) REFERENCES users (id)
             )
         """)
-        
+
         # Créer/Mettre à jour la table REACTIONS
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS reactions (
@@ -313,7 +313,7 @@ def init_db_schema():
                 UNIQUE (liker_user_id, liked_user_id)
             )
         """)
-        
+
         # Créer/Mettre à jour la table USER_ACTIVITY
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_activity (
@@ -345,7 +345,7 @@ def init_db_schema():
         if 'notification_sound' not in user_columns:
             print("  ➕ Ajout de 'notification_sound' à la table users")
             cursor.execute("ALTER TABLE users ADD COLUMN notification_sound BOOLEAN DEFAULT 1;")
-        
+
         # Migration pour les autres tables...
         # (Code de migration existant...)
 
@@ -358,7 +358,7 @@ def init_db_schema():
             "CREATE INDEX IF NOT EXISTS idx_room_members ON room_members(room_id, user_id)",
             "CREATE INDEX IF NOT EXISTS idx_user_activity ON user_activity(user_id, is_online)"
         ]
-        
+
         for index_sql in indexes_sqlite:
             try:
                 cursor.execute(index_sql)
