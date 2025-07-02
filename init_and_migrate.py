@@ -15,7 +15,7 @@ def get_db_connection():
         except ImportError:
             print("❌ psycopg2 non installé. Installation automatique...")
             import subprocess
-            subprocess.check_call(['pip', 'install', 'psycopg2-binary'])
+            subprocess.check_call(['pip', 'install', 'psycopg2'])
             import psycopg2
             import psycopg2.extras
             conn = psycopg2.connect(DATABASE_URL)
