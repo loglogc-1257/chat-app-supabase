@@ -33,11 +33,12 @@ DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 def get_db_connection():
     if DATABASE_URL.startswith('postgresql://') or DATABASE_URL.startswith('postgres://'):
         # PostgreSQL pour la production (Supabase)
-        import psycopg2
-        import psycopg2.extras
-        conn = psycopg2.connect(DATABASE_URL)
-        conn.autocommit = True
-        return conn
+        try:
+            import psycopg2
+            import psycopg2.extras
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = True
+            return conn
         except psycopg2.Error as e:
             print(f"❌ Erreur de connexion PostgreSQL: {e}")
             raise
@@ -439,16 +440,16 @@ def ai_chat():
 
     try:
         import requests
-        
+
         gemini_api_key = os.environ.get('GEMINI_API_KEY', 'AIzaSyAIf2_X5oFQRD1RCJSH1OGRhZuiL0C5wo8')
-        
+
         api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-        
+
         headers = {
             'Content-Type': 'application/json',
             'X-goog-api-key': gemini_api_key
         }
-        
+
         payload = {
             "contents": [
                 {
@@ -460,9 +461,9 @@ def ai_chat():
                 }
             ]
         }
-        
+
         response = requests.post(api_url, json=payload, headers=headers, timeout=10)
-        
+
         if response.status_code == 200:
             data = response.json()
             candidates = data.get('candidates', [])
@@ -474,7 +475,7 @@ def ai_chat():
                         'response': ai_response.strip(),
                         'source': 'Gemini'
                     })
-        
+
         return jsonify({'success': False, 'error': 'Erreur API Gemini'})
 
     except Exception as e:
@@ -794,7 +795,7 @@ def offline_mode():
     """Mode hors ligne - données essentielles uniquement"""
     user_id = session['user_id']
     conn = get_db_connection()
-    
+
     # Données ultra-compactes
     data = {
         'user': {
@@ -807,7 +808,7 @@ def offline_mode():
         ).fetchone()[0],
         'rooms': []
     }
-    
+
     # Salons actifs seulement
     rooms = conn.execute("""
         SELECT r.id, r.name, COUNT(m.id) as msg_count
@@ -819,14 +820,14 @@ def offline_mode():
         ORDER BY msg_count DESC
         LIMIT 3
     """, (user_id,)).fetchall()
-    
+
     for room in rooms:
         data['rooms'].append({
             'id': room['id'],
             'name': room['name'][:20],  # Limiter la longueur
             'activity': 'high' if room['msg_count'] > 10 else 'low'
         })
-    
+
     conn.close()
     return jsonify(data)
 
@@ -836,7 +837,7 @@ def conversations_light():
     """Version ultra-légère des conversations"""
     user_id = session['user_id']
     conn = get_db_connection()
-    
+
     conversations = conn.execute("""
         SELECT 
             CASE WHEN pm.sender_id = ? THEN pm.receiver_id ELSE pm.sender_id END as other_user_id,
@@ -856,7 +857,7 @@ def conversations_light():
         ORDER BY pm.timestamp DESC
         LIMIT 10
     """, (user_id, user_id, user_id, user_id, user_id, user_id)).fetchall()
-    
+
     result = []
     for conv in conversations:
         result.append({
@@ -866,7 +867,7 @@ def conversations_light():
             'time': conv['timestamp'][-5:] if conv['timestamp'] else '',  # Heure seulement
             'unread': min(conv['unread'], 99)  # Limiter à 99+
         })
-    
+
     conn.close()
     return jsonify(result)
 
@@ -876,7 +877,7 @@ def rooms_light():
     """Version légère des salons"""
     user_id = session['user_id']
     conn = get_db_connection()
-    
+
     rooms = conn.execute("""
         SELECT r.id, r.name, r.is_private,
                COUNT(rm.user_id) as members,
@@ -889,7 +890,7 @@ def rooms_light():
         ORDER BY recent_msgs DESC, r.created_at DESC
         LIMIT 15
     """, (user_id,)).fetchall()
-    
+
     result = []
     for room in rooms:
         result.append({
@@ -899,7 +900,7 @@ def rooms_light():
             'members': room['members'],
             'activity': 'high' if room['recent_msgs'] > 5 else 'normal'
         })
-    
+
     conn.close()
     return jsonify(result)
 
@@ -1664,5 +1665,5 @@ if __name__ == '__main__':
     # Configuration pour déploiement
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('REPLIT_DEPLOYMENT') != '1'
-    
+
     socketio.run(app, host='0.0.0.0', port=port, debug=debug_mode)
