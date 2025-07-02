@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation avec {{ other_username }} - Chat with Friends</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .conversation-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .conversation-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            position: relative;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            background: #2ed573;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+
+        .user-info h2 {
+            font-size: 1.3rem;
+            margin-bottom: 2px;
+        }
+
+        .user-status {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .conversation-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .messages-container {
+
+        <!-- Indicateur de connexion -->
+        <div class="connection-indicator" id="connectionIndicator">
+            <i class="fas fa-wifi"></i> <span id="connectionStatus">Vérification...</span>
+        </div>
+
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafbfc;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+
+        <!-- Notification mode économie -->
+        <div class="eco-mode-banner" id="ecoModeBanner" style="display: none;">
+            <div style="background: #e8f5e8; border: 1px solid #4caf50; padding: 10px; margin: 10px; border-radius: 8px; text-align: center; font-size: 0.9rem;">
+                <i class="fas fa-leaf" style="color: #4caf50;"></i>
+                <strong>Mode Économie Activé</strong><br>
+                <small>Consommation de données réduite • Chargement optimisé • Médias sur demande</small>
+            </div>
+        </div>
+
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-wrapper.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .message-content {
+            max-width: 70%;
+            position: relative;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            word-wrap: break-word;
+            margin-bottom: 5px;
+        }
+
+        .message-wrapper.own .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: #999;
+            text-align: center;
+        }
+
+        .message-wrapper.own .message-time {
+            color: #bbb;
+        }
+
+        .parent-message {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .message-wrapper.own .parent-message {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-media {
+            margin-top: 8px;
+        }
+
+        .message-media img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .message-media img:hover {
+            transform: scale(1.05);
+        }
+
+        .message-media video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+        }
+
+        .media-placeholder {
+            background: #f8f9ff;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px 0;
+        }
+
+        .media-placeholder:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .media-placeholder i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .data-saver-active #dataSaverBtn {
+            background: #2ed573;
+            color: white;
+        }
+
+        .data-saver-active #dataSaverIcon::before {
+            content: "\f6ab";
+        }
+
+        .message.light-mode {
+            margin-bottom: 8px;
+        }
+
+        .message-bubble.light {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .message-wrapper.own .message-bubble.light {
+            background: #e3f2fd;
+            border-color: #bbdefb;
+        }
+
+        .media-icon {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .connection-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            z-index: 1000;
+        }
+
+        .connection-slow {
+            background: #ff6b6b;
+        }
+
+        .connection-good {
+            background: #51cf66;
+        }
+
+        .file-preview {
+            background: #f8f9ff;
+            border-left: 3px solid #667eea;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .file-size {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .load-media-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .load-media-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .voice-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 5px;
+        }
+
+        .message-wrapper.own .voice-message {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .voice-play-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .voice-play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .voice-duration {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .message-wrapper.own .voice-duration {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .reaction {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reaction:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .message-actions {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            padding: 5px;
+            gap: 5px;
+        }
+
+        .message-bubble:hover .message-actions {
+            display: flex;
+        }
+
+        .action-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #f8f9ff;
+
+        // Monitoring de la connexion
+        function monitorConnection() {
+            const indicator = document.getElementById('connectionIndicator');
+            const status = document.getElementById('connectionStatus');
+
+            if (navigator.connection) {
+                const connection = navigator.connection;
+
+                function updateConnectionStatus() {
+                    const speed = connection.effectiveType;
+                    const downlink = connection.downlink;
+
+                    let statusText = '';
+                    let className = '';
+
+                    if (speed === '2g' || downlink < 0.5) {
+                        statusText = '2G - Très lent';
+                        className = 'connection-slow';
+                    } else if (speed === '3g' || downlink < 1.5) {
+                        statusText = '3G - Lent';
+                        className = 'connection-slow';
+                    } else {
+                        statusText = '4G+ - Rapide';
+                        className = 'connection-good';
+                    }
+
+                    status.textContent = statusText;
+                    indicator.className = `connection-indicator ${className}`;
+
+                    // Auto-hide après 3 secondes si connexion bonne
+                    if (className === 'connection-good') {
+                        setTimeout(() => {
+                            indicator.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        indicator.style.display = 'block';
+                    }
+                }
+
+                updateConnectionStatus();
+                connection.addEventListener('change', updateConnectionStatus);
+            } else {
+                // Fallback - test de vitesse simple
+                const startTime = performance.now();
+                fetch('/api/ping')
+                .then(() => {
+                    const endTime = performance.now();
+                    const responseTime = endTime - startTime;
+
+                    if (responseTime > 2000) {
+                        status.textContent = 'Connexion lente';
+                        indicator.className = 'connection-indicator connection-slow';
+                    } else {
+                        status.textContent = 'Connexion OK';
+                        indicator.className = 'connection-indicator connection-good';
+                        setTimeout(() => {
+                            indicator.style.display = 'none';
+                        }, 2000);
+                    }
+                })
+                .catch(() => {
+                    status.textContent = 'Connexion instable';
+                    indicator.className = 'connection-indicator connection-slow';
+                });
+            }
+        }
+
+            color: #667eea;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-icon:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .message-input-container {
+            background: white;
+            border-top: 1px solid #e1e1e1;
+            padding: 15px 20px;
+        }
+
+        .reply-preview {
+            background: #f8f9ff;
+            border-left: 3px solid #667eea;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .reply-to {
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .reply-close {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .reply-content {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f8f9ff;
+            color: #667eea;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .input-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .message-input {
+            flex: 1;
+            min-height: 40px;
+            max-height: 120px;
+            padding: 10px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            resize: none;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .emoji-picker {
+            position: absolute;
+
+        function loadMessagesLightMode() {
+            // Mode ultra-léger pour connexions très lentes
+            const limit = 5; // Seulement 5 messages à la fois
+
+            fetch(`/api/private_messages_light/${otherUserId}?page=${currentPage}&limit=${limit}`)
+            .then(response => response.json())
+            .then(messages => {
+                if (messages.length === 0) {
+                    hasMoreMessages = false;
+                    if (currentPage === 1) {
+                        const container = document.getElementById('messagesContainer');
+                        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">Aucun message récent</div>';
+                    }
+                    return;
+                }
+
+                const container = document.getElementById('messagesContainer');
+                if (currentPage === 1) container.innerHTML = '';
+
+                messages.reverse().forEach(message => {
+                    const messageEl = createLightMessageElement(message);
+                    container.appendChild(messageEl);
+                });
+
+                if (currentPage === 1) {
+                    container.scrollTop = container.scrollHeight;
+                }
+                currentPage++;
+            })
+            .catch(error => {
+                console.error('Erreur mode léger:', error);
+                showError('Impossible de charger les messages. Vérifiez votre connexion.');
+            })
+            .finally(() => {
+                isLoading = false;
+                document.getElementById('loadingMessages').style.display = 'none';
+            });
+        }
+
+        function createLightMessageElement(message) {
+            // Version ultra-simplifiée des messages
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message light-mode';
+            messageDiv.dataset.messageId = message.id;
+
+            const isOwn = message.sender_id === currentUserId;
+            const content = message.content || '[Fichier]';
+            const timeStr = new Date(message.timestamp).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+
+            messageDiv.innerHTML = `
+                <div class="message-wrapper ${isOwn ? 'own' : ''}">
+                    <div class="message-content">
+                        <div class="message-bubble light">
+                            <div class="message-text">${content}</div>
+                            ${message.media_url ? '<div class="media-icon">📎 Fichier</div>' : ''}
+                        </div>
+                        <div class="message-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+
+            return messageDiv;
+        }
+
+            bottom: 60px;
+            right: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            max-width: 240px;
+        }
+
+        .emoji {
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1.2rem;
+            transition: background 0.2s ease;
+        }
+
+        .emoji:hover {
+            background: #f8f9ff;
+        }
+
+        .file-upload-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .file-drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-drop-zone:hover {
+            background: #f8f9ff;
+        }
+
+        .file-drop-zone.dragover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .conversation-container {
+                height: 100vh;
+                max-width: none;
+            }
+
+            .conversation-header {
+                padding: 15px;
+            }
+
+            .user-info h2 {
+                font-size: 1.1rem;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .input-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="conversation-container">
+        <div class="conversation-header">
+            <button class="back-btn" onclick="window.location.href='{{ url_for('inbox') }}'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+
+            <div class="user-avatar">
+                {% if other_profile_pic and other_profile_pic != 'default_profile.png' %}
+                    <img src="/static/profile_pictures/{{ other_profile_pic }}" alt="{{ other_username }}">
+                {% else %}
+                    {{ other_username[0].upper() }}
+                {% endif %}
+                <div class="online-indicator" id="onlineIndicator" style="display: none;"></div>
+            </div>
+
+            <div class="user-info">
+                <h2>{{ other_username }}</h2>
+                <div class="user-status" id="userStatus">Hors ligne</div>
+            </div>
+
+            <div class="conversation-actions">
+                <button class="action-btn" onclick="toggleDataSaver()" title="Mode économie de données" id="dataSaverBtn">
+                    <i class="fas fa-wifi" id="dataSaverIcon"></i>
+                </button>
+                <button class="action-btn" onclick="openUserProfile({{ other_user_id }})" title="Voir le profil">
+                    <i class="fas fa-user"></i>
+                </button>
+                <button class="action-btn" onclick="showEmojiPicker()" title="Emoji">
+                    <i class="fas fa-smile"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <div class="loading" id="loadingMessages">
+                <div class="spinner"></div>
+                Chargement des messages...
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <span>{{ other_username }} est en train d'écrire...</span>
+        </div>
+
+        <div class="message-input-container">
+            <div class="reply-preview" id="replyPreview">
+                <div class="reply-header">
+                    <span class="reply-to" id="replyTo"></span>
+                    <button class="reply-close" onclick="cancelReply()">&times;</button>
+                </div>
+                <div class="reply-content" id="replyContent"></div>
+            </div>
+
+            <div class="input-wrapper">
+                <div class="input-actions">
+                    <button class="input-btn" onclick="triggerFileUpload()" title="Envoyer un fichier">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button class="input-btn" onclick="toggleVoiceRecording()" title="Message vocal" id="voiceBtn">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="input-btn" onclick="showEmojiPicker()" title="Emoji">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                </div>
+                <textarea class="message-input" id="messageInput" placeholder="Tapez votre message... (Commencez par / pour utiliser l'IA)" 
+                          onkeydown="handleInputKeydown(event)" oninput="handleInputChange()"></textarea>
+                <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Upload Modal -->
+    <div class="file-upload-modal" id="fileUploadModal">
+        <div class="modal-content">
+            <h3>Envoyer un fichier</h3>
+            <div class="file-drop-zone" id="fileDropZone" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+                <p>Cliquez ici ou glissez-déposez votre fichier</p>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+                    Formats supportés: Images, Vidéos, Documents, Archives
+                </div>
+            </div>
+            <input type="file" id="fileInput" style="display: none;" onchange="uploadFile(this.files[0])">
+            <div style="margin-top: 20px;">
+                <button class="action-btn btn-secondary" onclick="closeFileModal()" style="padding: 10px 20px; border-radius: 8px;">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emoji Picker -->
+    <div class="emoji-picker" id="emojiPicker">
+        <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+
+    <input type="hidden" id="currentUserId" value="{{ current_user_id }}">
+    <input type="hidden" id="otherUserId" value="{{ other_user_id }}">
+    <input type="hidden" id="otherUsername" value="{{ other_username }}">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const currentUserId = parseInt(document.getElementById('currentUserId').value);
+        const otherUserId = parseInt(document.getElementById('otherUserId').value);
+        const otherUsername = document.getElementById('otherUsername').value;
+
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMoreMessages = true;
+        let replyToMessage = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let typingTimer = null;
+        let isTyping = false;
+        let dataSaverMode = localStorage.getItem('dataSaverMode') === 'true' || false;
+
+        // Emojis populaires
+        const popularEmojis = ['😀', '😂', '😍', '🥰', '😘', '😊', '😎', '🤔', '😮', '😢', '😡', '👍', '👎', '❤️', '💕', '🔥', '✨', '🎉', '👏', '🙏', '💯', '😴', '🤣', '😇', '🥺', '😭', '🤗', '🤪', '😋', '😏', '🙄', '😤'];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeConversation();
+            loadMessages();
+            setupEventListeners();
+            createEmojiPicker();
+            initializeDataSaver();
+            monitorConnection();
+        });
+
+        function initializeDataSaver() {
+            // Détection automatique de connexion lente
+            if (navigator.connection) {
+                const connection = navigator.connection;
+                const slowConnections = ['slow-2g', '2g', '3g'];
+
+                if (slowConnections.includes(connection.effectiveType) || 
+                    connection.downlink < 1.5 || 
+                    connection.saveData) {
+                    dataSaverMode = true;
+                    localStorage.setItem('dataSaverMode', 'true');
+                    showNotification('Connexion lente détectée - Mode économie activé automatiquement');
+                }
+            }
+
+            if (dataSaverMode) {
+                document.body.classList.add('data-saver-active');
+                document.getElementById('dataSaverBtn').title = 'Mode économie de données activé';
+                document.getElementById('ecoModeBanner').style.display = 'block';
+            }
+        }
+
+        function initializeConversation() {
+            socket.emit('join_room', {user_id: otherUserId});
+
+            // Auto-resize textarea
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+
+        function setupEventListeners() {
+            // File drag and drop
+            const dropZone = document.getElementById('fileDropZone');
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFile(files[0]);
+                }
+            });
+
+            // Scroll detection for infinite loading
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.addEventListener('scroll', () => {
+                if (messagesContainer.scrollTop === 0 && hasMoreMessages && !isLoading) {
+                    loadMessages();
+                }
+            });
+        }
+
+        function loadMessages() {
+            if (isLoading || !hasMoreMessages) return;
+
+            isLoading = true;
+            const loadingEl = document.getElementById('loadingMessages');
+            if (currentPage === 1) loadingEl.style.display = 'block';
+
+            const startTime = performance.now();
+
+            // Timeout adaptatif selon la connexion
+            let timeoutDuration = 5000; // 5 secondes par défaut
+            if (navigator.connection) {
+                const connection = navigator.connection;
+                if (connection.effectiveType === '2g') timeoutDuration = 15000; // 15s pour 2G
+                else if (connection.effectiveType === '3g') timeoutDuration = 10000; // 10s pour 3G
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                isLoading = false;
+                loadingEl.style.display = 'none';
+                showError('Connexion lente détectée. Chargement en mode économie...');
+                loadMessagesLightMode();
+            }, timeoutDuration);
+
+            fetch(`/api/private_messages/${otherUserId}?page=${currentPage}&limit=10`, {
+                signal: controller.signal,
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => {
+                clearTimeout(timeoutId);
+                const loadTime = performance.now() - startTime;
+                console.log(`Messages chargés en ${Math.round(loadTime)}ms`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(messages => {
+                if (!Array.isArray(messages)) {
+                    throw new Error('Format de réponse invalide');
+                }
+
+                if (messages.length === 0) {
+                    hasMoreMessages = false;
+                    if (currentPage === 1) {
+                        const container = document.getElementById('messagesContainer');
+                        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i><br>Aucun message dans cette conversation.<br>Commencez en envoyant un message !</div>';
+                    }
+                    isLoading = false;
+                    loadingEl.style.display = 'none';
+                    return;
+                }
+
+                const container = document.getElementById('messagesContainer');
+                const scrollToBottom = currentPage === 1;
+
+                if (currentPage === 1) {
+                    container.innerHTML = '';
+                }
+
+                // Optimisation: créer tous les éléments en une fois
+                const fragment = document.createDocumentFragment();
+                messages.reverse().forEach(message => {
+                    const messageEl = createMessageElement(message);
+                    if (currentPage === 1) {
+                        fragment.appendChild(messageEl);
+                    } else {
+                        container.insertBefore(messageEl, container.firstChild);
+                    }
+                });
+
+                if (currentPage === 1) {
+                    container.appendChild(fragment);
+                }
+
+                if (scrollToBottom) {
+                    container.scrollTop = container.scrollHeight;
+                }
+
+                currentPage++;
+                isLoading = false;
+                loadingEl.style.display = 'none';
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                console.error('Erreur de chargement:', error);
+                isLoading = false;
+                loadingEl.style.display = 'none';
+
+                if (currentPage === 1) {
+                    const container = document.getElementById('messagesContainer');
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #999;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;"></i><br>
+                            Erreur de chargement (${error.message})<br>
+                            <button onclick="retryLoad()" style="margin-top: 15px; padding: 8px 16px; border: 1px solid #667eea; background: #667eea; color: white; border-radius: 5px; cursor: pointer;">
+                                <i class="fas fa-redo"></i> Réessayer
+                            </button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function forceReload() {
+            console.warn('Rechargement forcé en raison de lenteur');
+            location.reload();
+        }
+
+        function retryLoad() {
+            currentPage = 1;
+            hasMoreMessages = true;
+            loadMessages();
+        }
+
+        function showError(message) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #999;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;"></i><br>
+                    ${message}<br>
+                    <button onclick="retryLoad()" style="margin-top: 15px; padding: 8px 16px; border: 1px solid #667eea; background: #667eea; color: white; border-radius: 5px; cursor: pointer;">
+                        <i class="fas fa-redo"></i> Réessayer
+                    </button>
+                </div>
+            `;
+        }
+
+        function toggleVoiceRecording() {
+            if (!isRecording) {
+                startVoiceRecording();
+            } else {
+                stopVoiceRecording();
+            }
+        }
+
+        function startVoiceRecording() {
+            navigator.mediaDevices.getUserMedia({audio: true})
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    const chunks = [];
+
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, {type: 'audio/wav'});
+                        uploadVoiceMessage(blob);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-stop"></i>';
+                    document.getElementById('voiceBtn').style.background = '#ff4757';
+                })
+                .catch(err => {
+                    console.error('Erreur microphone:', err);
+                    alert('Impossible d\'accéder au microphone');
+                });
+        }
+
+        function stopVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('voiceBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+                document.getElementById('voiceBtn').style.background = '#f8f9ff';
+            }
+        }
+
+        function uploadVoiceMessage(blob) {
+            const formData = new FormData();
+            formData.append('audio', blob, 'voice.wav');
+
+            fetch('/upload_voice', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    socket.emit('send_private_message', {
+                        receiver_id: otherUserId,
+                        content: '',
+                        voice_url: data.voice_url
+                    });
+                } else {
+                    alert('Erreur lors de l\'upload vocal: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur upload vocal:', error);
+                alert('Erreur lors de l\'upload du message vocal');
+            });
+        }
+
+        function createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.dataset.messageId = message.id;
+
+            const isOwn = message.sender_id === currentUserId;
+            const wrapperClass = isOwn ? 'message-wrapper own' : 'message-wrapper';
+
+            let mediaContent = '';
+            if (message.media_url) {
+                const ext = message.media_url.split('.').pop().toLowerCase();
+                const fileName = message.media_url.split('/').pop();
+                const fileSize = estimateFileSize(ext);
+
+                if (dataSaverMode) {
+                    // Mode économie de données - afficher seulement un aperçu
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                        mediaContent = `
+                            <div class="media-placeholder" onclick="loadMedia('${message.media_url}', 'image', ${message.id})">
+                                <i class="fas fa-image"></i>
+                                <div>Image (${fileSize})</div>
+                                <small>Cliquer pour charger</small>
+                            </div>`;
+                    } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                        mediaContent = `
+                            <div class="media-placeholder" onclick="loadMedia('${message.media_url}', 'video', ${message.id})">
+                                <i class="fas fa-video"></i>
+                                <div>Vidéo (${fileSize})</div>
+                                <small>Cliquer pour charger</small>
+                            </div>`;
+                    } else {
+                        mediaContent = `
+                            <div class="file-preview">
+                                <div class="file-info">
+                                    <div class="file-icon">
+                                        <i class="fas fa-file"></i>
+                                    </div>
+                                    <div class="file-details">
+                                        <div class="file-name">${fileName}</div>
+                                        <div class="file-size">${fileSize}</div>
+                                    </div>
+                                    <button class="load-media-btn" onclick="window.open('${message.media_url}', '_blank')">
+                                        Télécharger
+                                    </button>
+                                </div>
+                            </div>`;
+                    }
+                } else {
+                    // Mode normal - charger directement
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                        mediaContent = `<div class="message-media"><img src="${message.media_url}" alt="Image" onclick="openImageModal('${message.media_url}')" style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;"></div>`;
+                    } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                        mediaContent = `<div class="message-media"><video controls style="max-width:100%;max-height:200px;border-radius:8px;"><source src="${message.media_url}"></video></div>`;
+                    } else {
+                        mediaContent = `<div class="message-media"><a href="${message.media_url}" target="_blank" style="color:#667eea;text-decoration:none;"><i class="fas fa-file"></i> ${fileName}</a></div>`;
+                    }
+                }
+            }
+
+            if (message.voice_message_url) {
+                if (dataSaverMode) {
+                    mediaContent = `
+                        <div class="media-placeholder" onclick="loadMedia('${message.voice_message_url}', 'audio', ${message.id})">
+                            <i class="fas fa-microphone"></i>
+                            <div>Message vocal (~50KB)</div>
+                            <small>Cliquer pour écouter</small>
+                        </div>`;
+                } else {
+                    mediaContent = `<div class="voice-message">
+                        <button class="voice-play-btn" onclick="playVoiceMessage('${message.voice_message_url}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <span class="voice-duration">Message vocal</span>
+                    </div>`;
+                }
+            }
+
+            const content = message.content || '';
+            const timeStr = typeof message.timestamp === 'string' ? message.timestamp : new Date(message.timestamp).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+
+            messageDiv.innerHTML = `
+                <div class="${wrapperClass}">
+                    <div class="message-avatar">${isOwn ? 'V' : otherUsername.charAt(0).toUpperCase()}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            ${content ? `<div class="message-text">${content}</div>` : ''}
+                            ${mediaContent}
+                            <div class="message-actions">
+                                <button class="action-icon" onclick="replyToMessage(${message.id}, '${message.sender_username}', '${content.replace(/'/g, "\\'").substring(0,50)}')" title="Répondre">
+                                    <i class="fas fa-reply"></i>
+                                </button>
+                                <button class="action-icon" onclick="addReaction(${message.id}, '👍')" title="👍">
+                                    👍
+                                </button>
+                                ${isOwn ? `<button class="action-icon" onclick="deletePrivateMessage(${message.id})" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>` : ''}
+                            </div>
+                        </div>
+                        <div class="message-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+
+            return messageDiv;
+        }
+
+        // Fonctions globales pour les boutons
+        window.openUserProfile = function(userId) {
+            window.open(`/user_profile/${userId}`, '_blank');
+        };
+
+        window.toggleDataSaver = function() {
+            dataSaverMode = !dataSaverMode;
+            localStorage.setItem('dataSaverMode', dataSaverMode.toString());
+
+            const container = document.body;
+            const btn = document.getElementById('dataSaverBtn');
+
+            if (dataSaverMode) {
+                container.classList.add('data-saver-active');
+                btn.title = 'Mode économie de données activé';
+                showNotification('Mode économie de données activé - Les médias ne se chargeront que sur demande');
+            } else {
+                container.classList.remove('data-saver-active');
+                btn.title = 'Mode économie de données';
+                showNotification('Mode économie de données désactivé');
+                // Recharger les messages pour afficher les médias
+                retryLoad();
+            }
+        };
+
+        window.loadMedia = function(url, type, messageId) {
+            const placeholder = event.target.closest('.media-placeholder');
+            if (!placeholder) return;
+
+            // Afficher un indicateur de chargement
+            placeholder.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Chargement...
+                </div>
+            `;
+
+            if (type === 'image') {
+                const img = new Image();
+                img.onload = function() {
+                    placeholder.outerHTML = `
+                        <div class="message-media">
+                            <img src="${url}" alt="Image" onclick="openImageModal('${url}')" 
+                                 style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;">
+                        </div>
+                    `;
+                };
+                img.onerror = function() {
+                    placeholder.innerHTML = `
+                        <div style="color: #ff6b6b; text-align: center; padding: 10px;">
+                            <i class="fas fa-exclamation-triangle"></i><br>
+                            Erreur de chargement
+                        </div>
+                    `;
+                };
+                img.src = url;
+            } else if (type === 'video') {
+                placeholder.outerHTML = `
+                    <div class="message-media">
+                        <video controls style="max-width:100%;max-height:200px;border-radius:8px;">
+                            <source src="${url}">
+                        </video>
+                    </div>
+                `;
+            } else if (type === 'audio') {
+                placeholder.outerHTML = `
+                    <div class="voice-message">
+                        <button class="voice-play-btn" onclick="playVoiceMessage('${url}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <span class="voice-duration">Message vocal</span>
+                    </div>
+                `;
+            }
+        };
+
+        function estimateFileSize(extension) {
+            const sizes = {
+                'jpg': '~200KB', 'jpeg': '~200KB', 'png': '~300KB', 'gif': '~500KB', 'webp': '~150KB',
+                'mp4': '~2MB', 'webm': '~1.5MB', 'ogg': '~1MB',
+                'pdf': '~500KB', 'doc': '~100KB', 'docx': '~100KB', 'txt': '~10KB',
+                'zip': '~1MB', 'rar': '~1MB', 'mp3': '~3MB', 'wav': '~50KB'
+            };
+            return sizes[extension.toLowerCase()] || '~100KB';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: #667eea;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                max-width: 300px;
+                font-size: 0.9rem;
+                animation: slideInRight 0.3s ease-out;
+            `;
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        window.showEmojiPicker = function() {
+            const picker = document.getElementById('emojiPicker');
+            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+        };
+
+        window.triggerFileUpload = function() {
+            document.getElementById('fileUploadModal').style.display = 'flex';
+        };
+
+        window.toggleVoiceRecording = function() {
+            if (!isRecording) {
+                startVoiceRecording();
+            } else {
+                stopVoiceRecording();
+            }
+        };
+
+        window.closeFileModal = function() {
+            document.getElementById('fileUploadModal').style.display = 'none';
+        };
+
+        window.playVoiceMessage = function(url) {
+            const audio = new Audio(url);
+            audio.play().catch(e => console.error('Erreur lecture audio:', e));
+        };
+
+        window.openImageModal = function(url) {
+            window.open(url, '_blank');
+        };
+
+        window.retryLoad = function() {
+            currentPage = 1;
+            hasMoreMessages = true;
+            loadMessages();
+        };
+
+        window.cancelReply = function() {
+            replyToMessage = null;
+            document.getElementById('replyPreview').style.display = 'none';
+        };
+
+        window.sendMessage = function() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            // Vérifier si c'est une commande IA
+            if (content.startsWith('/')) {
+                const aiPrompt = content.substring(1).trim();
+                if (aiPrompt) {
+                    handleAIRequest(aiPrompt);
+                }
+                input.value = '';
+                input.style.height = 'auto';
+                return;
+            }
+
+            const messageData = {
+                receiver_id: otherUserId,
+                content: content,
+                parent_id: replyToMessage ? replyToMessage.id : null
+            };
+
+            socket.emit('send_private_message', messageData);
+            input.value = '';
+            input.style.height = 'auto';
+            cancelReply();
+            stopTyping();
+            playSendSound();
+        };
+
+        window.handleInputKeydown = function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        };
+
+        window.handleInputChange = function() {
+            clearTimeout(typingTimer);
+
+            if (!isTyping) {
+                isTyping = true;
+                socket.emit('private_typing', {receiver_id: otherUserId, is_typing: true});
+                playTypingSound();
+            }
+
+            typingTimer = setTimeout(() => {
+                isTyping = false;
+                socket.emit('private_typing', {receiver_id: otherUserId, is_typing: false});
+            }, 2000);
+        };
+
+
+
+        function handleAIRequest(prompt) {
+            // Afficher un message temporaire avec indicateur amélioré
+            const container = document.getElementById('messagesContainer');
+            const tempMessage = document.createElement('div');
+            tempMessage.innerHTML = `
+                <div class="message-wrapper">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                L'IA traite votre demande...<br>
+                                <small style="opacity:0.7;">APIs: Pollinations & OrochiAI</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(tempMessage);
+            container.scrollTop = container.scrollHeight;
+
+            const startTime = Date.now();
+
+            fetch('/api/ai_chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({message: prompt})
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseTime = Date.now() - startTime;
+                tempMessage.remove();
+
+                if (data.success) {
+                    // Envoyer la réponse de l'IA avec indication de la source
+                    const sourceIcon = data.source === 'OrochiAI' ? '⚡' : '🌸';
+                    socket.emit('send_private_message', {
+                        receiver_id: otherUserId,
+                        content: `${sourceIcon} IA (${data.source}): ${data.response}`,
+                        parent_id: null
+                    });
+
+                    console.log(`Réponse IA reçue en ${responseTime}ms depuis ${data.source}`);
+                } else {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.innerHTML = `
+                        <div class="message-wrapper">
+                            <div class="message-avatar">❌</div>
+                            <div class="message-content">
+                                <div class="message-bubble" style="background: #ff6b6b; color: white;">
+                                    IA indisponible: ${data.error}
+                                    <br><small>Temps: ${responseTime}ms</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(errorMsg);
+                    container.scrollTop = container.scrollHeight;
+
+                    // Retirer le message d'erreur après 5 secondes
+                    setTimeout(() => {
+                        if (errorMsg.parentNode) {
+                            errorMsg.remove();
+                        }
+                    }, 5000);
+                }
+            })
+            .catch(error => {
+                const responseTime = Date.now() - startTime;
+                tempMessage.remove();
+                console.error('Erreur IA:', error);
+
+                const errorMsg = document.createElement('div');
+                errorMsg.innerHTML = `
+                    <div class="message-wrapper">
+                        <div class="message-avatar">⚠️</div>
+                        <div class="message-content">
+                            <div class="message-bubble" style="background: #ff6b6b; color: white;">
+                                Erreur de connexion aux APIs IA
+                                <br><small>Temps: ${responseTime}ms</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(errorMsg);
+                container.scrollTop = container.scrollHeight;
+
+                // Retirer le message d'erreur après 5 secondes
+                setTimeout(() => {
+                    if (errorMsg.parentNode) {
+                        errorMsg.remove();
+                    }
+                }, 5000);
+            });
+        }
+
+
+
+        function stopTyping() {
+            if (isTyping) {
+                isTyping = false;
+                socket.emit('private_typing', {receiver_id: otherUserId, is_typing: false});
+            }
+        }
+
+        function replyToMessage(messageId, senderUsername, content) {
+            replyToMessage = {id: messageId, username: senderUsername, content: content};
+
+            const replyToEl = document.getElementById('replyTo');
+            const replyContentEl = document.getElementById('replyContent');
+            const replyPreviewEl = document.getElementById('replyPreview');
+
+            if (replyToEl) replyToEl.textContent = `Répondre à ${senderUsername}`;
+            if (replyContentEl) replyContentEl.textContent = content.substring(0, 100) + (content.length > 100 ? '...' : '');
+            if (replyPreviewEl) replyPreviewEl.style.display = 'block';
+
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) messageInput.focus();
+        }
+
+        function cancelReply() {
+            replyToMessage = null;
+            document.getElementById('replyPreview').style.display = 'none';
+        }
+
+        function addReaction(messageId, emoji) {
+            socket.emit('add_reaction', {
+                message_id: messageId,
+                emoji: emoji,
+                is_private: true,
+                receiver_id: otherUserId
+            });
+        }
+
+
+
+        function uploadFile(file) {
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadModal = document.getElementById('fileUploadModal');
+            uploadModal.innerHTML = `
+                <div class="modal-content">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Upload en cours...
+                    </div>
+                </div>
+            `;
+
+            fetch('/upload_file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    socket.emit('send_private_message', {
+                        receiver_id: otherUserId,
+                        content: '',
+                        media_url: data.file_url,
+                        file_type: data.file_type
+                    });
+                    closeFileModal();
+                } else {
+                    alert('Erreur lors de l\'upload: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'upload du fichier');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            });
+        }
+
+        function createEmojiPicker() {
+            const emojiGrid = document.getElementById('emojiGrid');
+            popularEmojis.forEach(emoji => {
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'emoji';
+                emojiSpan.textContent = emoji;
+                emojiSpan.onclick = () => insertEmoji(emoji);
+                emojiGrid.appendChild(emojiSpan);
+            });
+        }
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('messageInput');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+
+            input.value = text.substring(0, start) + emoji + text.substring(end);
+            input.selectionStart = input.selectionEnd = start + emoji.length;
+            input.focus();
+
+            document.getElementById('emojiPicker').style.display = 'none';
+        }
+
+
+
+        // Socket.IO Event Listeners
+        socket.on('new_private_message', function(message) {
+            // Vérifier si le message est pour cette conversation
+            if ((message.sender_id === currentUserId && message.receiver_id === otherUserId) ||
+                (message.sender_id === otherUserId && message.receiver_id === currentUserId)) {
+
+                const container = document.getElementById('messagesContainer');
+                const messageEl = createMessageElement(message);
+                container.appendChild(messageEl);
+                container.scrollTop = container.scrollHeight;
+
+                // Notification sound (if from other user)
+                if (message.sender_id === otherUserId) {
+                    playNotificationSound();
+                }
+            }
+        });
+
+        socket.on('private_message_reacted', function(data) {
+            const messageEl = document.querySelector(`[data-message-id="${data.message_id}"]`);
+            if (messageEl) {
+                updateMessageReactions(messageEl, data.reactions);
+            }
+        });
+
+        socket.on('private_typing_status', function(data) {
+            if (data.user_id === otherUserId) {
+                const indicator = document.getElementById('typingIndicator');
+                indicator.style.display = data.is_typing ? 'flex' : 'none';
+            }
+        });
+
+        socket.on('user_status_changed', function(data) {
+            if (data.user_id === otherUserId) {
+                const indicator = document.getElementById('onlineIndicator');
+                const status = document.getElementById('userStatus');
+
+                if (data.is_online) {
+                    indicator.style.display = 'block';
+                    status.textContent = 'En ligne';
+                } else {
+                    indicator.style.display = 'none';
+                    status.textContent = 'Hors ligne';
+                }
+            }
+        });
+
+        function updateMessageReactions(messageEl, reactions) {
+            const reactionsContainer = messageEl.querySelector('.message-reactions');
+            if (reactionsContainer) {
+                reactionsContainer.remove();
+            }
+
+            if (reactions.length > 0) {
+                const newReactionsContainer = document.createElement('div');
+                newReactionsContainer.className = 'message-reactions';
+
+                reactions.forEach(reaction => {
+                    const reactionSpan = document.createElement('span');
+                    reactionSpan.className = 'reaction';
+                    reactionSpan.textContent = `${reaction.emoji} ${reaction.count}`;
+                    reactionSpan.title = reaction.usernames;
+                    reactionSpan.onclick = () => addReaction(messageEl.dataset.messageId, reaction.emoji);
+                    newReactionsContainer.appendChild(reactionSpan);
+                });
+
+                messageEl.querySelector('.message-content').appendChild(newReactionsContainer);
+            }
+        }
+
+        function deletePrivateMessage(messageId) {
+            if (!confirm('Supprimer ce message ?')) return;
+
+            fetch(`/api/delete_private_message/${messageId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+                    if (messageEl) {
+                        messageEl.style.opacity = '0';
+                        setTimeout(() => messageEl.remove(), 300);
+                    }
+                } else {
+                    alert('Erreur: ' + (data.error || 'Impossible de supprimer le message'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression du message');
+            });
+        }
+
+        function showReactionPicker(messageId) {
+            // Réactions rapides
+            const emojis = ['👍', '❤️', '😂', '😮', '😢', '👏'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            addReaction(messageId, emoji);
+        }
+
+
+
+        function playNotificationSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGWi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQgsgc7y2Ik3CBlou+3nn00MDFCn4/C2YxwGOJHX8st5LAUkd8fw3ZBACBRdtOvtqFUUCkaf4PK+bCEILIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LLeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGGi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQgsgc7y2Ik3CBlou+3nn04MDFCn4/C2YxwGOJHX8st5LAUkd8fw3ZBACRRdtOvtqFUUCkaf4PK+bCEILIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LLeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGWi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQgsgc7y2Ik3CBlou+3nn00MDFCn4/C2YxwGOJHX8st5LAUkd8fw3ZBACBRdtOvtqFUUCkaf4PK+bCEILIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LLeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGWi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQgsgc7y2Ik3CBlou+3nn00MDFCn4/C2YxwGOJHX8st5LAUkd8fw3ZBACBRdtOvtqFUUCkaf4PK+bCEILIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LLeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGWi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQgsgc7y2Ik3CBlou+3nn00MDFCn4/C2YxwGOJHX8st5LAUkd8fw3ZBACBRdtOvtqFUUCkaf4PK+bCEILIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LLeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGWi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQgsgc7y2Ik3CBlou+3nn00MDFCn4/C2YxwGOJHX8st5LAUkd8fw3ZBACBRdtOvtqFUUCkaf4PK+bCEILIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LLeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhCCyBzvLYiTcIGWi77eefTQwMUKfj8LZjHAY4kdfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQ==');
+            audio.volume = 0.1;
+            audio.play().catch(e => console.log('Could not play notification sound'));
+        }
+
+        function playTypingSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRigBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAC4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7uLu4u7i7');
+            audio.volume = 0.05; // Son très léger pour la frappe
+            audio.playbackRate = 1.2; // Un peu plus rapide
+            audio.play().catch(e => console.log('Could not play typing sound'));
+        }
+
+        function playSendSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRjIBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ4BAADn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj');
+            audio.volume = 0.3; // Volume moyen pour l'envoi
+            audio.play().catch(e => console.log('Could not play send sound'));
+        }
+
+        // Gestion de la fermeture des modals
+        document.addEventListener('click', function(event) {
+            const emojiPicker = document.getElementById('emojiPicker');
+            const fileModal = document.getElementById('fileUploadModal');
+
+            if (!emojiPicker.contains(event.target) && !event.target.closest('.input-btn')) {
+                emojiPicker.style.display = 'none';
+            }
+
+            if (event.target === fileModal) {
+                closeFileModal();
+            }
+        });
+
+        // Gestion du clavier
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('emojiPicker').style.display = 'none';
+                closeFileModal();
+                cancelReply();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages Privés - CHAT WITH FRIENDS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Styles généraux */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 70vh;
+            max-height: 90vh;
+        }
+
+        /* Header */
+        .inbox-header {
+            background-color: #f0f2f5;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .inbox-header h1 {
+            font-size: 1.8em;
+            color: #333;
+            margin: 0;
+        }
+
+        .inbox-header .actions a {
+            background-color: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .inbox-header .actions a:hover {
+            background-color: #764ba2;
+        }
+
+        /* Liste des conversations */
+        .conversation-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+            background-color: #fff;
+        }
+
+        /* Style pour la scrollbar */
+        .conversation-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .conversation-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .conversation-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .conversation-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+        .conversation-item:hover {
+            background-color: #f9f9f9;
+        }
+        .conversation-item:last-child {
+            border-bottom: none;
+        }
+
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid #667eea;
+            flex-shrink: 0;
+        }
+
+        .conversation-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .conversation-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-last-message {
+            font-size: 0.9em;
+            color: #777;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 3px;
+        }
+
+        .conversation-time {
+            font-size: 0.8em;
+            color: #999;
+            margin-left: 10px;
+            flex-shrink: 0; /* Empêche le timestamp de réduire sa taille */
+            text-align: right;
+            align-self: flex-start; /* Align with top of info */
+        }
+
+        .unread-badge {
+            background-color: #ff4d4f; /* Couleur rouge pour non lus */
+            color: white;
+            font-size: 0.75em;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #777;
+        }
+        .empty-state p {
+            font-size: 1em;
+            line-height: 1.5;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="inbox-header">
+            <h1><i class="fas fa-inbox"></i> Messages Privés</h1>
+            <div class="actions">
+                <a href="{{ url_for('rooms_dashboard') }}"><i class="fas fa-arrow-left"></i> Retour aux salons</a>
+            </div>
+        </div>
+
+        <div class="conversation-list">
+            {% if conversations %}
+                {% for conv in conversations %}
+                    <div class="conversation-item" onclick="window.location.href='{{ url_for('conversation', other_user_id=conv.other_user_id) }}'">
+                        <img src="{{ url_for('static', filename='profile_pictures/' + (conv.other_user_profile_pic if conv.other_user_profile_pic else 'default_profile.png')) }}"
+                             alt="Avatar" class="conversation-avatar">
+                        <div class="conversation-info">
+                            <div class="conversation-name">{{ conv.other_username }}</div>
+                            <div class="conversation-last-message">
+                                {% if conv.last_message_content %}
+                                    {{ conv.last_message_content[:50] + '...' if conv.last_message_content|length > 50 else conv.last_message_content }}
+                                {% elif conv.last_message_media_url %}
+                                    <i class="fas fa-paperclip"></i> Fichier joint
+                                {% elif conv.last_message_voice_url %}
+                                    <i class="fas fa-microphone"></i> Message vocal
+                                {% else %}
+                                    Aucun message
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="conversation-time">{{ conv.last_message_timestamp }}</div>
+                        {% if conv.unread_count > 0 %}
+                            <div class="unread-badge">{{ conv.unread_count }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>Aucune conversation</h3>
+                    <p>Vous n'avez pas encore de messages privés. Trouvez un utilisateur via la liste des membres dans un salon et cliquez sur "Envoyer un message privé" pour commencer une conversation !</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages Privés - Chat with Friends</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .inbox-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .inbox-header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inbox-header h1 i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .actions a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .actions a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .search-bar {
+            padding: 20px;
+            border-bottom: 1px solid #e1e1e1;
+            background: #f8f9ff;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .conversation-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background: white;
+        }
+
+        .conversation-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .conversation-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .conversation-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .conversation-list::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .conversation-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mode économie de données */
+        .data-saver-mode .conversation-item {
+            box-shadow: none;
+            border: 1px solid #e1e1e1;
+            margin-bottom: 5px;
+            padding: 10px;
+        }
+
+        .data-saver-mode .conversation-item:hover {
+            transform: none;
+            box-shadow: none;
+            background: #f8f9fa;
+        }
+
+        .data-saver-mode * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .connection-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+
+        .connection-slow {
+            background: #ff6b6b;
+        }
+
+        .connection-good {
+            background: #51cf66;
+        }
+
+        .lite-conversation-list {
+            display: none;
+        }
+
+        .data-saver-mode .lite-conversation-list {
+            display: block;
+        }
+
+        .data-saver-mode .conversations-list {
+            display: none;
+        }
+
+        .lite-conversation-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e1e1e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .lite-conversation-item:hover {
+            background: #f8f9fa;
+        }
+
+        .lite-conv-info {
+            flex: 1;
+        }
+
+        .lite-conv-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .lite-conv-preview {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .offline-banner {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .offline-banner.active {
+            display: block;
+        }
+
+        .conversation-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 3px solid #667eea;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: #2ed573;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+
+        .conversation-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-time {
+            font-size: 0.8rem;
+            color: #999;
+            flex-shrink: 0;
+        }
+
+        .conversation-last-message {
+            font-size: 0.9rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .conversation-last-message i {
+            color: #667eea;
+        }
+
+        .conversation-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unread-badge {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            text-align: center;
+            color: #666;
+            min-height: 400px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            opacity: 0.7;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-width: 400px;
+        }
+
+        .new-conversation-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .new-conversation-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .inbox-header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .conversation-item {
+                padding: 15px;
+            }
+
+            .conversation-avatar {
+                width: 50px;
+                height: 50px;
+            }
+
+            .empty-state {
+                padding: 40px 20px;
+            }
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Indicateur de connexion -->
+    <div class="connection-indicator" id="connectionIndicator">
+        <i class="fas fa-wifi"></i> <span id="connectionStatus">Vérification...</span>
+    </div>
+
+    <!-- Banner mode hors ligne -->
+    <div class="offline-banner" id="offlineBanner">
+        <i class="fas fa-leaf" style="color: #4caf50;"></i>
+        <strong>Mode Économie Activé</strong> • Consommation de données réduite
+    </div>
+
+    <div class="inbox-container">
+        <div class="inbox-header">
+            <div class="header-content">
+                <h1><i class="fas fa-inbox"></i> Boîte de réception</h1>
+                <p>Vos conversations privées</p>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="toggleOfflineMode()" id="offlineModeBtn">
+                    <i class="fas fa-plane"></i> Mode Économie
+                </button>
+                <button class="search-btn" onclick="toggleSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="{{ url_for('friends') }}" class="header-btn">
+                    <i class="fas fa-user-plus"></i> Amis
+                </a>
+                <a href="{{ url_for('rooms_dashboard') }}" class="header-btn">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+
+<div class="inbox-content">
+            {% if get_flashed_messages() %}
+                <div class="flash-messages">
+                    {% for category, message in get_flashed_messages(with_categories=true) %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Liste simplifiée pour mode économie -->
+            <div class="lite-conversation-list" id="liteConversationList">
+                <h3 style="margin-bottom: 15px; font-size: 1.1rem;">💬 Conversations (Mode Simplifié)</h3>
+                <div id="liteConversations">
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        Chargement des conversations...
+                    </div>
+                </div>
+            </div>
+<div class="search-bar">
+            <input type="text" class="search-input" placeholder="Rechercher une conversation..." id="searchInput">
+        </div>
+
+        <div class="conversation-list" id="conversationList">
+            {% if conversations %}
+                {% for conv in conversations %}
+                    <div class="conversation-item" onclick="window.location.href='{{ url_for('conversation', other_user_id=conv.other_user_id) }}'">
+                        <div style="position: relative;">
+                            <img src="{{ url_for('static', filename='profile_pictures/' + (conv.other_profile_pic if conv.other_profile_pic else 'default_profile.png')) }}"
+                                 alt="Avatar" class="conversation-avatar">
+                            <div class="online-indicator" style="display: none;" data-user-id="{{ conv.other_user_id }}"></div>
+                        </div>
+
+                        <div class="conversation-info">
+                            <div class="conversation-header">
+                                <div class="conversation-name">{{ conv.other_username }}</div>
+                                <div class="conversation-time">{{ conv.last_timestamp }}</div>
+                            </div>
+                            <div class="conversation-meta">
+                                <div class="conversation-last-message">
+                                    {% if conv.last_message %}
+                                        {{ conv.last_message[:50] + '...' if conv.last_message|length > 50 else conv.last_message }}
+                                    {% else %}
+                                        <i class="fas fa-comment"></i> Nouvelle conversation
+                                    {% endif %}
+                                </div>
+                                {% if conv.unread_count > 0 %}
+                                    <div class="unread-badge">{{ conv.unread_count }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>Aucune conversation</h3>
+                    <p>Vous n'avez pas encore de messages privés. Trouvez un utilisateur via la liste des membres dans un salon pour commencer une conversation !</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <button class="new-conversation-btn" onclick="showNewConversationModal()" title="Nouvelle conversation">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <script>
+        let searchVisible = false;
+        let isOfflineMode = localStorage.getItem('offlineMode') === 'true';
+
+        // Détection de la qualité de connexion
+        function detectConnection() {
+            const indicator = document.getElementById('connectionIndicator');
+            const status = document.getElementById('connectionStatus');
+
+            if (navigator.connection) {
+                const connection = navigator.connection;
+                const speed = connection.effectiveType;
+
+                if (speed === '2g' || speed === 'slow-2g' || connection.saveData) {
+                    status.textContent = 'Connexion lente';
+                    indicator.className = 'connection-indicator connection-slow';
+                    if (!isOfflineMode) suggestOfflineMode();
+                } else {
+                    status.textContent = 'Connexion rapide';
+                    indicator.className = 'connection-indicator connection-good';
+                    setTimeout(() => indicator.style.display = 'none', 3000);
+                }
+            } else {
+                const startTime = Date.now();
+                fetch('/api/ping')
+                .then(() => {
+                    const responseTime = Date.now() - startTime;
+                    if (responseTime > 2000) {
+                        status.textContent = 'Connexion lente';
+                        indicator.className = 'connection-indicator connection-slow';
+                        if (!isOfflineMode) suggestOfflineMode();
+                    } else {
+                        status.textContent = 'Connexion normale';
+                        indicator.className = 'connection-indicator connection-good';
+                        setTimeout(() => indicator.style.display = 'none', 2000);
+                    }
+                })
+                .catch(() => {
+                    status.textContent = 'Connexion instable';
+                    indicator.className = 'connection-indicator connection-slow';
+                });
+            }
+        }
+
+        function suggestOfflineMode() {
+            setTimeout(() => {
+                if (confirm('Connexion lente détectée. Activer le mode économie pour les conversations ?')) {
+                    toggleOfflineMode();
+                }
+            }, 1500);
+        }
+
+        function toggleOfflineMode() {
+            isOfflineMode = !isOfflineMode;
+            localStorage.setItem('offlineMode', isOfflineMode.toString());
+
+            const body = document.body;
+            const banner = document.getElementById('offlineBanner');
+            const btn = document.getElementById('offlineModeBtn');
+
+            if (isOfflineMode) {
+                body.classList.add('data-saver-mode');
+                banner.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-wifi"></i> Mode Normal';
+                loadLiteConversations();
+            } else {
+                body.classList.remove('data-saver-mode');
+                banner.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-plane"></i> Mode Économie';
+                location.reload();
+            }
+        }
+
+        function loadLiteConversations() {
+            const container = document.getElementById('liteConversations');
+            container.innerHTML = '<div style="text-align: center; padding: 10px;">Chargement...</div>';
+
+            fetch('/api/conversations_light')
+            .then(response => response.json())
+            .then(conversations => {
+                if (conversations.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Aucune conversation</div>';
+                    return;
+                }
+
+                let html = '';
+                conversations.forEach(conv => {
+                    const unreadBadge = conv.unread > 0 ? `<span style="background: #ff6b6b; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">${conv.unread}</span>` : '';
+                    html += `
+                        <div class="lite-conversation-item" onclick="openConversation(${conv.id})">
+                            <div class="lite-conv-info">
+                                <div class="lite-conv-name">${conv.name}</div>
+                                <div class="lite-conv-preview">${conv.preview}</div>
+                            </div>
+                            <div style="text-align: right; font-size: 0.7rem; color: #999;">
+                                ${conv.time}
+                                ${unreadBadge}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Erreur de chargement</div>';
+            });
+        }
+
+        function toggleSearch() {
+            const searchContainer = document.getElementById('searchContainer');
+            const searchInput = document.getElementById('searchInput');
+
+            searchVisible = !searchVisible;
+            searchContainer.style.display = searchVisible ? 'block' : 'none';
+
+            if (searchVisible) {
+                searchInput.focus();
+            } else {
+                searchInput.value = '';
+                filterConversations('');
+            }
+        }
+
+        function filterConversations(query) {
+            if (isOfflineMode) {
+                const conversations = document.querySelectorAll('.lite-conversation-item');
+                conversations.forEach(conv => {
+                    const text = conv.textContent.toLowerCase();
+                    conv.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
+                });
+            } else {
+                const conversations = document.querySelectorAll('.conversation-item');
+                conversations.forEach(conv => {
+                    const username = conv.querySelector('.conversation-info h3').textContent.toLowerCase();
+                    const preview = conv.querySelector('.conversation-preview').textContent.toLowerCase();
+
+                    if (username.includes(query.toLowerCase()) || preview.includes(query.toLowerCase())) {
+                        conv.style.display = 'flex';
+                    } else {
+                        conv.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            detectConnection();
+
+            if (isOfflineMode) {
+                document.body.classList.add('data-saver-mode');
+                document.getElementById('offlineBanner').classList.add('active');
+                document.getElementById('offlineModeBtn').innerHTML = '<i class="fas fa-wifi"></i> Mode Normal';
+                loadLiteConversations();
+            } else {
+                // Animation normale
+                const conversations = document.querySelectorAll('.conversation-item');
+                conversations.forEach((conv, index) => {
+                    setTimeout(() => {
+                        conv.style.opacity = '1';
+                        conv.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }
+
+            // Auto-hide flash messages
+            setTimeout(() => {
+                document.querySelectorAll('.flash-message').forEach(msg => {
+                    if (isOfflineMode) {
+                        msg.remove();
+                    } else {
+                        msg.style.animation = 'slideOut 0.5s ease-out forwards';
+                        setTimeout(() => msg.remove(), 500);
+                    }
+                });
+            }, isOfflineMode ? 2000 : 5000);
+        });
+
+        function openConversation(userId) {
+            // Ajouter le paramètre du mode économie dans l'URL
+            if (isOfflineMode) {
+                window.location.href = `/conversation/${userId}?lite=1`;
+            } else {
+                window.location.href = `/conversation/${userId}`;
+            }
+        }
+    </script>
+</body>
+</html>

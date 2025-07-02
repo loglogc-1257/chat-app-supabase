@@ -1,0 +1,555 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Amis - Chat with Friends</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9ff;
+            border-bottom: 1px solid #e1e1e1;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            font-size: 1rem;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .content {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .friend-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .friend-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .friend-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #2ed573;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+
+        .friend-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f8f9ff;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .request-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .request-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .request-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/rooms_dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1><i class="fas fa-users"></i> Mes Amis</h1>
+            <div></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('friends')">
+                <i class="fas fa-user-friends"></i> Amis
+            </button>
+            <button class="tab" onclick="showTab('requests')">
+                <i class="fas fa-user-plus"></i> Demandes <span id="requestCount" class="badge"></span>
+            </button>
+            <button class="tab" onclick="showTab('search')">
+                <i class="fas fa-search"></i> Rechercher
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- Onglet Amis -->
+            <div id="friendsTab" class="tab-content">
+                <div class="friends-grid" id="friendsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Chargement...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Demandes -->
+            <div id="requestsTab" class="tab-content" style="display: none;">
+                <div id="requestsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Chargement...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Recherche -->
+            <div id="searchTab" class="tab-content" style="display: none;">
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="userSearch" placeholder="Rechercher des utilisateurs...">
+                </div>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'friends';
+
+        function showTab(tab) {
+            // Masquer tous les onglets
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Désactiver tous les boutons
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Afficher l'onglet sélectionné
+            document.getElementById(tab + 'Tab').style.display = 'block';
+            event.target.classList.add('active');
+            currentTab = tab;
+            
+            // Charger le contenu
+            if (tab === 'friends') {
+                loadFriends();
+            } else if (tab === 'requests') {
+                loadRequests();
+            }
+        }
+
+        function loadFriends() {
+            fetch('/api/friends')
+                .then(response => response.json())
+                .then(friends => {
+                    const container = document.getElementById('friendsList');
+                    
+                    if (friends.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-user-friends"></i>
+                                <h3>Aucun ami pour le moment</h3>
+                                <p>Recherchez des utilisateurs et envoyez des demandes d'amis!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    friends.forEach(friend => {
+                        const friendCard = document.createElement('div');
+                        friendCard.className = 'friend-card';
+                        friendCard.innerHTML = `
+                            <div class="friend-avatar">
+                                ${friend.profile_picture_url !== 'default_profile.png' ? 
+                                    `<img src="/static/profile_pictures/${friend.profile_picture_url}" alt="${friend.username}">` :
+                                    friend.username.charAt(0).toUpperCase()
+                                }
+                                ${friend.is_online ? '<div class="online-indicator"></div>' : ''}
+                            </div>
+                            <div class="friend-name">${friend.username}</div>
+                            <div class="friend-actions">
+                                <button class="btn btn-primary" onclick="openConversation(${friend.id})">
+                                    <i class="fas fa-comment"></i> Message
+                                </button>
+                                <button class="btn btn-secondary" onclick="openProfile(${friend.id})">
+                                    <i class="fas fa-user"></i> Profil
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(friendCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('friendsList').innerHTML = '<p>Erreur de chargement</p>';
+                });
+        }
+
+        function loadRequests() {
+            fetch('/api/friend_requests')
+                .then(response => response.json())
+                .then(requests => {
+                    const container = document.getElementById('requestsList');
+                    const countBadge = document.getElementById('requestCount');
+                    
+                    countBadge.textContent = requests.length > 0 ? requests.length : '';
+                    
+                    if (requests.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-user-plus"></i>
+                                <h3>Aucune demande d'ami</h3>
+                                <p>Vous n'avez pas de nouvelles demandes d'amis.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    requests.forEach(request => {
+                        const requestItem = document.createElement('div');
+                        requestItem.className = 'request-item';
+                        requestItem.innerHTML = `
+                            <div class="request-avatar">
+                                ${request.sender_pic !== 'default_profile.png' ? 
+                                    `<img src="/static/profile_pictures/${request.sender_pic}" alt="${request.sender_username}">` :
+                                    request.sender_username.charAt(0).toUpperCase()
+                                }
+                            </div>
+                            <div class="request-info">
+                                <div class="request-name">${request.sender_username}</div>
+                                <div class="request-time">${request.created_at}</div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="btn btn-primary" onclick="respondRequest(${request.id}, 'accept')">
+                                    <i class="fas fa-check"></i> Accepter
+                                </button>
+                                <button class="btn btn-secondary" onclick="respondRequest(${request.id}, 'decline')">
+                                    <i class="fas fa-times"></i> Refuser
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(requestItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('requestsList').innerHTML = '<p>Erreur de chargement</p>';
+                });
+        }
+
+        function respondRequest(requestId, action) {
+            fetch(`/api/respond_friend_request/${requestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({action: action})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    loadRequests(); // Recharger la liste
+                    if (action === 'accept') {
+                        loadFriends(); // Recharger les amis aussi
+                    }
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur réseau');
+            });
+        }
+
+        function openConversation(userId) {
+            window.location.href = `/conversation/${userId}`;
+        }
+
+        function openProfile(userId) {
+            window.location.href = `/user_profile/${userId}`;
+        }
+
+        // Recherche d'utilisateurs
+        document.getElementById('userSearch').addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+            
+            fetch(`/api/user_search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(users => {
+                    const container = document.getElementById('searchResults');
+                    
+                    if (users.length === 0) {
+                        container.innerHTML = '<p>Aucun utilisateur trouvé</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    users.forEach(user => {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'request-item';
+                        userItem.innerHTML = `
+                            <div class="request-avatar">
+                                ${user.profile_picture_url !== 'default_profile.png' ? 
+                                    `<img src="/static/profile_pictures/${user.profile_picture_url}" alt="${user.username}">` :
+                                    user.username.charAt(0).toUpperCase()
+                                }
+                            </div>
+                            <div class="request-info">
+                                <div class="request-name">${user.username}</div>
+                                <div class="request-time">${user.bio || 'Aucune bio'}</div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="btn btn-primary" onclick="sendFriendRequest(${user.id})">
+                                    <i class="fas fa-user-plus"></i> Ajouter
+                                </button>
+                                <button class="btn btn-secondary" onclick="openProfile(${user.id})">
+                                    <i class="fas fa-user"></i> Profil
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(userItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+        });
+
+        function sendFriendRequest(userId) {
+            fetch(`/api/send_friend_request/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur réseau');
+            });
+        }
+
+        // Charger les amis au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFriends();
+            loadRequests(); // Pour le badge
+        });
+    </script>
+</body>
+</html>

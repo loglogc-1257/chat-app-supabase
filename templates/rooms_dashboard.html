@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salons - Chat with Friends</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9ff;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .section-header i {
+            font-size: 1.5rem;
+            color: #667eea;
+        }
+
+        .section-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .room-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .room-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .room-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .room-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .room-code {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .member-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .join-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .join-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .create-room-form {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .private-room-join {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .join-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .join-form input {
+            flex: 1;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .flash-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flash-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .join-form {
+                flex-direction: column;
+            }
+        }
+
+        .animate-in {
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Mode économie de données */
+        .data-saver-mode .room-card {
+            box-shadow: none;
+            border: 1px solid #e1e1e1;
+        }
+
+        .data-saver-mode * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .data-saver-mode .room-card:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .connection-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+
+        .connection-slow {
+            background: #ff6b6b;
+        }
+
+        .connection-good {
+            background: #51cf66;
+        }
+
+        .offline-banner {
+            background: #f8f9fa;
+            border: 2px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .offline-banner.active {
+            display: block;
+        }
+
+        .lite-room-list {
+            display: none;
+        }
+
+        .data-saver-mode .lite-room-list {
+            display: block;
+        }
+
+        .data-saver-mode .rooms-grid {
+            display: none;
+        }
+
+        .lite-room-item {
+            padding: 10px;
+            border-bottom: 1px solid #e1e1e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lite-room-item:hover {
+            background: #f8f9fa;
+        }
+
+        .room-info-lite {
+            flex: 1;
+        }
+
+        .room-name-lite {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .room-stats-lite {
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Indicateur de connexion -->
+    <div class="connection-indicator" id="connectionIndicator">
+        <i class="fas fa-wifi"></i> <span id="connectionStatus">Vérification...</span>
+    </div>
+
+    <!-- Banner mode hors ligne -->
+    <div class="offline-banner" id="offlineBanner">
+        <i class="fas fa-plane" style="color: #007bff;"></i>
+        <strong>Mode Hors Ligne Activé</strong><br>
+        <small>Interface simplifiée • Données minimales • Idéal pour les connexions limitées</small>
+    </div>
+
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-comments"></i>
+                <h1>Chat with Friends</h1>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('inbox') }}" class="btn btn-primary">
+                    <i class="fas fa-inbox"></i> Messages Privés
+                </a>
+                <a href="{{ url_for('friends') }}" class="btn btn-primary">
+                    <i class="fas fa-users"></i> Mes Amis
+                </a>
+                <a href="{{ url_for('profile') }}" class="btn btn-primary">
+                    <i class="fas fa-user"></i> Profil
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if get_flashed_messages() %}
+            <div class="flash-messages">
+                {% for category, message in get_flashed_messages(with_categories=true) %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="dashboard-grid">
+            <!-- Créer un salon -->
+            <div class="section animate-in">
+                <div class="section-header">
+                    <i class="fas fa-plus-circle"></i>
+                    <h2>Créer un salon</h2>
+                </div>
+
+                <form method="POST" action="{{ url_for('create_room') }}" class="create-room-form">
+                    <div class="form-group">
+                        <label for="room_name">Nom du salon</label>
+                        <input type="text" id="room_name" name="room_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="room_description">Description (optionnel)</label>
+                        <textarea id="room_description" name="room_description" rows="3"></textarea>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="is_private" name="is_private">
+                        <label for="is_private">Salon privé (nécessite un code)</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                        <i class="fas fa-plus"></i> Créer le salon
+                    </button>
+                </form>
+
+                <div class="private-room-join">
+                    <h3 style="margin-bottom: 15px; color: #856404;">
+                        <i class="fas fa-key"></i> Rejoindre un salon privé
+                    </h3>
+                    <form method="POST" action="{{ url_for('join_private_room') }}" class="join-form">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                            <input type="text" name="room_code" placeholder="Code du salon" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-sign-in-alt"></i> Rejoindre
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Salons publics -->
+            <div class="section animate-in" style="animation-delay: 0.1s;">
+                <div class="section-header">
+                    <i class="fas fa-globe"></i>
+                    <h2>Salons publics</h2>
+                </div>
+
+                {% if public_rooms %}
+                    {% for room in public_rooms %}
+                        <div class="room-card" onclick="joinRoom({{ room.id }})">
+                            <div class="room-header">
+                                <div>
+                                    <div class="room-name">{{ room.name }}</div>
+                                    {% if room.description %}
+                                        <div class="room-description">{{ room.description }}</div>
+                                    {% endif %}
+                                </div>
+                                <button class="join-btn" onclick="event.stopPropagation(); joinRoom({{ room.id }})">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div class="room-meta">
+                                <span>Créé par {{ room.creator_username }}</span>
+                                <span class="member-count">
+                                    <i class="fas fa-users"></i>
+                                    {{ room.member_count }} membre(s)
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>Aucun salon public</h3>
+                        <p>Soyez le premier à créer un salon public !</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Mes salons privés -->
+            <div class="section animate-in" style="animation-delay: 0.2s;">
+                <div class="section-header">
+                    <i class="fas fa-lock"></i>
+                    <h2>Mes salons privés</h2>
+                </div>
+
+                {% if private_rooms_created %}
+                    {% for room in private_rooms_created %}
+                        <div class="room-card" onclick="joinRoom({{ room.id }})">
+                            <div class="room-header">
+                                <div>
+                                    <div class="room-name">{{ room.name }}</div>
+                                    {% if room.description %}
+                                        <div class="room-description">{{ room.description }}</div>
+                                    {% endif %}
+                                    <div class="room-code">Code: {{ room.room_code }}</div>
+                                </div>
+                                <button class="join-btn" onclick="event.stopPropagation(); joinRoom({{ room.id }})">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div class="room-meta">
+                                <span>Créé par vous</span>
+                                <span class="member-count">
+                                    <i class="fas fa-users"></i>
+                                    {{ room.member_count }} membre(s)
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-lock"></i>
+                        <h3>Aucun salon privé créé</h3>
+                        <p>Créez un salon privé pour commencer !</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Salons privés rejoints -->
+            <div class="section animate-in" style="animation-delay: 0.3s;">
+                <div class="section-header">
+                    <i class="fas fa-user-friends"></i>
+                    <h2>Salons privés rejoints</h2>
+                </div>
+
+                {% if private_rooms_joined %}
+                    {% for room in private_rooms_joined %}
+                        <div class="room-card" onclick="joinRoom({{ room.id }})">
+                            <div class="room-header">
+                                <div>
+                                    <div class="room-name">{{ room.name }}</div>
+                                    {% if room.description %}
+                                        <div class="room-description">{{ room.description }}</div>
+                                    {% endif %}
+                                </div>
+                                <button class="join-btn" onclick="event.stopPropagation(); joinRoom({{ room.id }})">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div class="room-meta">
+                                <span>Créé par {{ room.creator_username }}</span>
+                                <span class="member-count">
+                                    <i class="fas fa-users"></i>
+                                    {{ room.member_count }} membre(s)
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-user-friends"></i>
+                        <h3>Aucun salon privé rejoint</h3>
+                        <p>Utilisez un code pour rejoindre un salon privé !</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isOfflineMode = localStorage.getItem('offlineMode') === 'true';
+        let connectionQuality = 'unknown';
+
+        // Détection de la qualité de connexion
+        function detectConnection() {
+            const indicator = document.getElementById('connectionIndicator');
+            const status = document.getElementById('connectionStatus');
+
+            if (navigator.connection) {
+                const connection = navigator.connection;
+                const speed = connection.effectiveType;
+
+                if (speed === '2g' || speed === 'slow-2g' || connection.saveData) {
+                    connectionQuality = 'slow';
+                    status.textContent = 'Connexion lente';
+                    indicator.className = 'connection-indicator connection-slow';
+                    if (!isOfflineMode) {
+                        showOfflineSuggestion();
+                    }
+                } else {
+                    connectionQuality = 'good';
+                    status.textContent = 'Connexion rapide';
+                    indicator.className = 'connection-indicator connection-good';
+                    setTimeout(() => indicator.style.display = 'none', 3000);
+                }
+            } else {
+                // Test de vitesse de base
+                const startTime = Date.now();
+                fetch('/api/ping')
+                .then(() => {
+                    const responseTime = Date.now() - startTime;
+                    if (responseTime > 2000) {
+                        connectionQuality = 'slow';
+                        status.textContent = 'Connexion lente';
+                        indicator.className = 'connection-indicator connection-slow';
+                        if (!isOfflineMode) showOfflineSuggestion();
+                    } else {
+                        connectionQuality = 'good';
+                        status.textContent = 'Connexion normale';
+                        indicator.className = 'connection-indicator connection-good';
+                        setTimeout(() => indicator.style.display = 'none', 2000);
+                    }
+                })
+                .catch(() => {
+                    connectionQuality = 'slow';
+                    status.textContent = 'Connexion instable';
+                    indicator.className = 'connection-indicator connection-slow';
+                });
+            }
+        }
+
+        function showOfflineSuggestion() {
+            setTimeout(() => {
+                if (confirm('Connexion lente détectée. Activer le mode hors ligne pour une meilleure expérience ?')) {
+                    toggleOfflineMode();
+                }
+            }, 2000);
+        }
+
+        function toggleOfflineMode() {
+            isOfflineMode = !isOfflineMode;
+            localStorage.setItem('offlineMode', isOfflineMode.toString());
+
+            const body = document.body;
+            const banner = document.getElementById('offlineBanner');
+            const btn = document.getElementById('offlineModeBtn');
+
+            if (isOfflineMode) {
+                body.classList.add('data-saver-mode');
+                banner.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-wifi"></i> Mode Normal';
+                loadLiteRooms();
+            } else {
+                body.classList.remove('data-saver-mode');
+                banner.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-plane"></i> Mode Hors Ligne';
+                location.reload();
+            }
+        }
+
+        function loadLiteRooms() {
+            const container = document.getElementById('liteRooms');
+            container.innerHTML = '<div style="text-align: center; padding: 10px;">Chargement...</div>';
+
+            fetch('/api/rooms_light')
+            .then(response => response.json())
+            .then(rooms => {
+                if (rooms.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Aucun salon disponible</div>';
+                    return;
+                }
+
+                let html = '';
+                rooms.forEach(room => {
+                    const activityIcon = room.activity === 'high' ? '🔥' : '📝';
+                    html += `
+                        <div class="lite-room-item" onclick="location.href='/chat/${room.id}'">
+                            <div class="room-info-lite">
+                                <div class="room-name-lite">${activityIcon} ${room.name}</div>
+                                <div class="room-stats-lite">${room.members} membres • ${room.type}</div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Erreur de chargement</div>';
+            });
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            detectConnection();
+
+            if (isOfflineMode) {
+                document.body.classList.add('data-saver-mode');
+                document.getElementById('offlineBanner').classList.add('active');
+                document.getElementById('offlineModeBtn').innerHTML = '<i class="fas fa-wifi"></i> Mode Normal';
+                loadLiteRooms();
+            } else {
+                // Animation normale seulement si pas en mode économie
+                const cards = document.querySelectorAll('.room-card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }
+
+            // Auto-hide flash messages
+            setTimeout(() => {
+                document.querySelectorAll('.flash-message').forEach(msg => {
+                    if (isOfflineMode) {
+                        msg.remove();
+                    } else {
+                        msg.style.animation = 'slideOut 0.5s ease-out forwards';
+                        setTimeout(() => msg.remove(), 500);
+                    }
+                });
+            }, isOfflineMode ? 2000 : 5000);
+        });
+
+        function joinRoom(roomId) {
+            window.location.href = `/join_room/${roomId}`;
+        }
+
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.animation = 'slideOut 0.5s ease-out forwards';
+            });
+        }, 5000);
+
+        // Stagger animations
+        document.querySelectorAll('.animate-in').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        // Copy room code functionality
+        document.querySelectorAll('.room-code').forEach(codeEl => {
+            codeEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const code = this.textContent.replace('Code: ', '');
+                navigator.clipboard.writeText(code).then(() => {
+                    this.textContent = 'Copié !';
+                    setTimeout(() => {
+                        this.textContent = `Code: ${code}`;
+                    }, 2000);
+                });
+            });
+        });
+
+        // Search functionality
+        function searchRooms() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.room-card');
+
+            cards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+
+                if (title.includes(query) || description.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter functionality
+        function filterRooms(type) {
+            const cards = document.querySelectorAll('.room-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            cards.forEach(card => {
+                const cardType = card.dataset.type;
+                if (type === 'all' || cardType === type) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Room actions
+        function deleteRoom(roomId, roomName) {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer le salon "${roomName}" ?`)) {
+                fetch(`/api/delete_room/${roomId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression');
+                });
+            }
+        }
+
+        function copyRoomCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Code copié dans le presse-papiers !');
+            });
+        }
+    </script>
+</body>
+</html>
