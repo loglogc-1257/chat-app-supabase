@@ -3,7 +3,7 @@ services:
   - type: web
     name: chat-app
     env: python
-    buildCommand: "apt-get update && apt-get install -y libpq-dev && pip install -r requirements.txt && python setup_database.py"
+    buildCommand: "pip install -r requirements.txt && python setup_database.py"
     startCommand: "gunicorn -c gunicorn_config.py wsgi:application"
     envVars:
       - key: DATABASE_URL
