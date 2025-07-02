@@ -3,13 +3,13 @@ services:
   - type: web
     name: chat-app
     env: python
-    buildCommand: "pip install -r requirements.txt && python setup_database.py"
+    buildCommand: "apt-get update && apt-get install -y libpq-dev && pip install -r requirements.txt && python setup_database.py"
     startCommand: "gunicorn -c gunicorn_config.py wsgi:application"
     envVars:
       - key: DATABASE_URL
-        value: your_database_url_here
+        value: postgresql://postgres:Thanotos212121212121@db.chvfukfnewnktpsptvmb.supabase.co:5432/postgres
       - key: GEMINI_API_KEY
-        value: your_gemini_api_key_here
+        value: AIzaSyAIf2_X5oFQRD1RCJSH1OGRhZuiL0C5wo8
       - key: FLASK_SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
