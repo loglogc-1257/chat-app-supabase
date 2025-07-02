@@ -6,21 +6,11 @@ DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 
 def get_db_connection():
     if DATABASE_URL.startswith('postgresql://') or DATABASE_URL.startswith('postgres://'):
-        try:
-            import psycopg2
-            import psycopg2.extras
-            conn = psycopg2.connect(DATABASE_URL)
-            conn.autocommit = True
-            return conn
-        except ImportError:
-            print("❌ psycopg2 non installé. Installation automatique...")
-            import subprocess
-            subprocess.check_call(['pip', 'install', 'psycopg2'])
-            import psycopg2
-            import psycopg2.extras
-            conn = psycopg2.connect(DATABASE_URL)
-            conn.autocommit = True
-            return conn
+        import psycopg2
+        import psycopg2.extras
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = True
+        return conn
         except psycopg2.Error as e:
             print(f"❌ Erreur de connexion PostgreSQL: {e}")
             print("📝 Vérifiez que DATABASE_URL est correctement configuré")
