@@ -1,0 +1,50 @@
+Erreur de construction
+werkzeug.routing.exceptions.BuildError : Impossible de générer l'URL du point de terminaison « inbox ». Voulez-vous plutôt dire « index » ?
+
+Traceback (dernier appel le plus récent)
+Fichier « /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py » , ligne 1476 , danswsgi_app
+réponse = self.handle_exception(e)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+Fichier « /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py » , ligne 1473 , danswsgi_app
+réponse = self.full_dispatch_request()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier « /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py » , ligne 882 , dansfull_dispatch_request
+rv = self.handle_user_exception(e)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py" , ligne 880 , dansfull_dispatch_request
+rv = self.dispatch_request()
+      ^^^^^^^^^^^^^^^^^^^^^^
+Fichier "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py" , ligne 865 , dansdispatch_request
+renvoie self.ensure_sync(self.view_functions[rule.endpoint])(**view_args) # type : ignore[no-any-return]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier "/home/runner/workspace/main.py" , ligne 594 , dansprofile
+retourner render_template('profile.html',
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier « /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/templating.py » , ligne 150 , dansrender_template
+renvoie _render(application, modèle, contexte)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier « /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/templating.py » , ligne 131 , dans_render
+rv = template.render(contexte)
+      ^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier « /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py » , ligne 1295 , dansrender
+self.environment.handle_exception()
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fichier "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py" , ligne 942 , danshandle_exception
+raise rewrite_traceback_stack(source=source)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/templates/profile.html", line 299, in top-level template code
+<a href="{{ url_for('inbox') }}" class="nav-link">
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1084, in url_for
+return self.handle_url_build_error(error, endpoint, values)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1073, in url_for
+rv = url_adapter.build(  # type: ignore[union-attr]
+     
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/werkzeug/routing/map.py", line 924, in build
+raise BuildError(endpoint, values, method, self)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'inbox'. Did you mean 'index' instead?
+The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
+To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it.
+
+Brought to you by DON'T PANIC, your friendly Werkzeug powered traceback interpreter.
