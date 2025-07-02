@@ -15,8 +15,8 @@ os.makedirs(VOICE_FOLDER, exist_ok=True)
 import init_and_migrate
 init_and_migrate.init_db_schema()
 
-# Point d'entrée WSGI pour Render
-application = app
+# Point d'entrée pour les serveurs WSGI
+application = socketio
 
 if __name__ == "__main__":
     # Pour le développement local
