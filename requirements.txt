@@ -8,4 +8,4 @@ gunicorn==23.0.0
 gevent==25.5.1
 gevent-websocket==0.10.1
 requests==2.32.4
-psycopg2-binary==2.9.9
+psycopg2==2.9.9
