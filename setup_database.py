@@ -32,9 +32,9 @@ def setup_postgresql():
         try:
             import psycopg2
         except ImportError:
-            print("📦 Installation de psycopg2-binary...")
+            print("📦 Installation de psycopg2...")
             import subprocess
-            subprocess.check_call(['pip', 'install', 'psycopg2-binary'])
+            subprocess.check_call(['pip', 'install', 'psycopg2'])
             import psycopg2
             
         database_url = os.environ.get('DATABASE_URL')
